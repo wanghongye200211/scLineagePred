@@ -2,14 +2,15 @@
 
 `scLineagePred` is a source-only GitHub project prepared from the original research workspace.
 
-It keeps four code blocks:
+It keeps four integrated code blocks:
 
 - `DeepRUOT/`: trajectory reconstruction code, wrapped for reusable CLI execution
 - `autoencoder/`: embedding training code
-- `classification/`: classification scripts
-- `regression/`: regression scripts
+- `classification/`: one unified classification pipeline
+- `regression/`: one unified regression pipeline
 
 This repository intentionally excludes datasets, checkpoints, figures, and intermediate results.
+Dataset-specific historical scripts are archived under each module's `legacy/` directory and are no longer the main interface.
 
 ## Project Layout
 
@@ -47,19 +48,32 @@ python -m sclineagepred embedding train \
   --out-dir /path/to/output
 ```
 
-List or launch legacy classification / regression scripts:
+Run unified classification:
 
 ```bash
-python -m sclineagepred classification list
-python -m sclineagepred classification run class_140802
+python -m sclineagepred classification train -- \
+  --time-series-h5 /path/to/sequences.h5 \
+  --index-csv /path/to/index.csv \
+  --out-dir /path/to/output \
+  --target-label Alpha \
+  --target-label Beta
+```
 
-python -m sclineagepred regression list
-python -m sclineagepred regression run regression_140802
+Run unified regression:
+
+```bash
+python -m sclineagepred regression train -- \
+  --ae-result-dir /path/to/embedding_output \
+  --time-series-h5 /path/to/sequences.h5 \
+  --index-csv /path/to/index.csv \
+  --adata-h5ad /path/to/integrated.h5ad \
+  --out-dir /path/to/output \
+  --keep-label Alpha \
+  --keep-label Beta
 ```
 
 Notes:
 
-- `classification/` and `regression/` remain legacy research scripts with their original logic.
-- The wrapped commands are focused on the reusable parts: trajectory reconstruction and embedding training.
-- Most legacy scripts still expect the user to edit paths or configs before running them on new data.
-
+- `classification/train.py` and `regression/train.py` are now the primary training entry points.
+- Archived per-dataset scripts are still available through `python -m sclineagepred legacy list <category>` and `python -m sclineagepred legacy run <category> <script>`.
+- The wrapped commands are focused on reusable interfaces instead of dataset-specific filenames.

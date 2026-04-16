@@ -3,7 +3,14 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
-from .legacy import available_scripts, run_embedding_training, run_legacy_script, run_trajectory_training
+from .legacy import (
+    available_legacy_scripts,
+    available_scripts,
+    run_archived_script,
+    run_embedding_training,
+    run_legacy_script,
+    run_trajectory_training,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -86,8 +93,11 @@ def build_parser() -> argparse.ArgumentParser:
     embedding_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the legacy script")
     embedding_run.set_defaults(handler=handle_run_legacy, category="embedding")
 
-    classification = subparsers.add_parser("classification", help="Legacy classification scripts")
+    classification = subparsers.add_parser("classification", help="Unified classification pipeline")
     classification_sub = classification.add_subparsers(dest="classification_command", required=True)
+    classification_train = classification_sub.add_parser("train", help="Run unified classification training")
+    classification_train.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to classification/train.py")
+    classification_train.set_defaults(handler=handle_run_legacy, category="classification", script="train")
     classification_list = classification_sub.add_parser("list", help="List classification scripts")
     classification_list.set_defaults(handler=handle_list_category, category="classification")
     classification_run = classification_sub.add_parser("run", help="Run a classification script")
@@ -95,14 +105,28 @@ def build_parser() -> argparse.ArgumentParser:
     classification_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the legacy script")
     classification_run.set_defaults(handler=handle_run_legacy, category="classification")
 
-    regression = subparsers.add_parser("regression", help="Legacy regression scripts")
+    regression = subparsers.add_parser("regression", help="Unified regression pipeline")
     regression_sub = regression.add_subparsers(dest="regression_command", required=True)
+    regression_train = regression_sub.add_parser("train", help="Run unified regression training")
+    regression_train.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to regression/train.py")
+    regression_train.set_defaults(handler=handle_run_legacy, category="regression", script="train")
     regression_list = regression_sub.add_parser("list", help="List regression scripts")
     regression_list.set_defaults(handler=handle_list_category, category="regression")
     regression_run = regression_sub.add_parser("run", help="Run a regression script")
     regression_run.add_argument("script", help="Script name, with or without .py")
     regression_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the legacy script")
     regression_run.set_defaults(handler=handle_run_legacy, category="regression")
+
+    legacy = subparsers.add_parser("legacy", help="List or run archived dataset-specific scripts")
+    legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
+    legacy_list = legacy_sub.add_parser("list", help="List archived scripts in a category")
+    legacy_list.add_argument("category", choices=["trajectory", "embedding", "classification", "regression"])
+    legacy_list.set_defaults(handler=handle_list_legacy)
+    legacy_run = legacy_sub.add_parser("run", help="Run an archived script")
+    legacy_run.add_argument("category", choices=["trajectory", "embedding", "classification", "regression"])
+    legacy_run.add_argument("script", help="Archived script name, with or without .py")
+    legacy_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the archived script")
+    legacy_run.set_defaults(handler=handle_run_archived)
 
     return parser
 
@@ -121,6 +145,15 @@ def handle_list_category(args: argparse.Namespace) -> None:
 
 def handle_run_legacy(args: argparse.Namespace) -> None:
     run_legacy_script(args.category, args.script, args.script_args)
+
+
+def handle_list_legacy(args: argparse.Namespace) -> None:
+    for script in available_legacy_scripts(args.category):
+        print(script)
+
+
+def handle_run_archived(args: argparse.Namespace) -> None:
+    run_archived_script(args.category, args.script, args.script_args)
 
 
 def handle_trajectory_train(args: argparse.Namespace) -> None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -14,6 +15,11 @@ SOURCE_DIRS = {
     "embedding": PROJECT_ROOT / "autoencoder",
     "classification": PROJECT_ROOT / "classification",
     "regression": PROJECT_ROOT / "regression",
+}
+
+LEGACY_DIRS = {
+    category: path / "legacy"
+    for category, path in SOURCE_DIRS.items()
 }
 
 
@@ -37,6 +43,28 @@ def resolve_script(category: str, script_name: str) -> Path:
     return script_path
 
 
+def available_legacy_scripts(category: str) -> list[str]:
+    legacy_dir = LEGACY_DIRS[category]
+    if not legacy_dir.exists():
+        return []
+    return sorted(
+        path.stem
+        for path in legacy_dir.glob("*.py")
+        if path.name != "__init__.py"
+    )
+
+
+def resolve_legacy_script(category: str, script_name: str) -> Path:
+    normalized = script_name if script_name.endswith(".py") else f"{script_name}.py"
+    script_path = LEGACY_DIRS[category] / normalized
+    if not script_path.exists():
+        known = ", ".join(available_legacy_scripts(category))
+        raise FileNotFoundError(
+            f"Unknown legacy {category} script: {script_name}. Available scripts: {known}"
+        )
+    return script_path
+
+
 def _normalize_passthrough_args(args: list[str]) -> list[str]:
     if args and args[0] == "--":
         return args[1:]
@@ -46,7 +74,26 @@ def _normalize_passthrough_args(args: list[str]) -> list[str]:
 def run_legacy_script(category: str, script_name: str, script_args: list[str]) -> None:
     script_path = resolve_script(category, script_name)
     cmd = [sys.executable, str(script_path), *_normalize_passthrough_args(script_args)]
-    subprocess.run(cmd, cwd=PROJECT_ROOT, check=True)
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(PROJECT_ROOT), str(SOURCE_DIRS[category]), env.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
+    subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, check=True)
+
+
+def run_archived_script(category: str, script_name: str, script_args: list[str]) -> None:
+    script_path = resolve_legacy_script(category, script_name)
+    cmd = [sys.executable, str(script_path), *_normalize_passthrough_args(script_args)]
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        [
+            str(PROJECT_ROOT),
+            str(SOURCE_DIRS[category]),
+            str(LEGACY_DIRS[category]),
+            env.get("PYTHONPATH", ""),
+        ]
+    ).rstrip(os.pathsep)
+    subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, check=True)
 
 
 def _ensure_sys_path(path: Path) -> None:
@@ -104,4 +151,3 @@ def run_embedding_training(config: dict[str, Any]) -> None:
     train_module = importlib.import_module("train_model")
     cfg = train_module.TrainConfig(**config)
     train_module.main(cfg)
-
