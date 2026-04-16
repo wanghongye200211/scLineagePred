@@ -9,12 +9,14 @@ from typing import Any
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PACKAGE_ROOT = Path(__file__).resolve().parent
 
 SOURCE_DIRS = {
     "trajectory": PROJECT_ROOT / "DeepRUOT",
     "embedding": PROJECT_ROOT / "autoencoder",
-    "classification": PROJECT_ROOT / "classification",
-    "regression": PROJECT_ROOT / "regression",
+    "classification": PACKAGE_ROOT / "classification",
+    "regression": PACKAGE_ROOT / "regression",
+    "perturbation": PACKAGE_ROOT / "perturbation",
 }
 
 LEGACY_DIRS = {
@@ -76,7 +78,12 @@ def run_legacy_script(category: str, script_name: str, script_args: list[str]) -
     cmd = [sys.executable, str(script_path), *_normalize_passthrough_args(script_args)]
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join(
-        [str(PROJECT_ROOT), str(SOURCE_DIRS[category]), env.get("PYTHONPATH", "")]
+        [
+            str(PROJECT_ROOT),
+            str(PACKAGE_ROOT),
+            str(SOURCE_DIRS[category]),
+            env.get("PYTHONPATH", ""),
+        ]
     ).rstrip(os.pathsep)
     subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, check=True)
 
@@ -88,6 +95,7 @@ def run_archived_script(category: str, script_name: str, script_args: list[str])
     env["PYTHONPATH"] = os.pathsep.join(
         [
             str(PROJECT_ROOT),
+            str(PACKAGE_ROOT),
             str(SOURCE_DIRS[category]),
             str(LEGACY_DIRS[category]),
             env.get("PYTHONPATH", ""),

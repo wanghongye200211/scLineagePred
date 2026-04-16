@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="sclineagepred")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    list_parser = subparsers.add_parser("list", help="List all bundled legacy scripts")
+    list_parser = subparsers.add_parser("list", help="List primary bundled scripts")
     list_parser.set_defaults(handler=handle_list_all)
 
     trajectory = subparsers.add_parser("trajectory", help="DeepRUOT trajectory reconstruction")
@@ -117,13 +117,25 @@ def build_parser() -> argparse.ArgumentParser:
     regression_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the legacy script")
     regression_run.set_defaults(handler=handle_run_legacy, category="regression")
 
+    perturbation = subparsers.add_parser("perturbation", help="Unified perturbation pipeline")
+    perturbation_sub = perturbation.add_subparsers(dest="perturbation_command", required=True)
+    perturbation_train = perturbation_sub.add_parser("train", help="Run unified perturbation training")
+    perturbation_train.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to perturbation/train.py")
+    perturbation_train.set_defaults(handler=handle_run_legacy, category="perturbation", script="train")
+    perturbation_list = perturbation_sub.add_parser("list", help="List perturbation scripts")
+    perturbation_list.set_defaults(handler=handle_list_category, category="perturbation")
+    perturbation_run = perturbation_sub.add_parser("run", help="Run a perturbation script")
+    perturbation_run.add_argument("script", help="Script name, with or without .py")
+    perturbation_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the legacy script")
+    perturbation_run.set_defaults(handler=handle_run_legacy, category="perturbation")
+
     legacy = subparsers.add_parser("legacy", help="List or run archived dataset-specific scripts")
     legacy_sub = legacy.add_subparsers(dest="legacy_command", required=True)
     legacy_list = legacy_sub.add_parser("list", help="List archived scripts in a category")
-    legacy_list.add_argument("category", choices=["trajectory", "embedding", "classification", "regression"])
+    legacy_list.add_argument("category", choices=["trajectory", "embedding", "classification", "regression", "perturbation"])
     legacy_list.set_defaults(handler=handle_list_legacy)
     legacy_run = legacy_sub.add_parser("run", help="Run an archived script")
-    legacy_run.add_argument("category", choices=["trajectory", "embedding", "classification", "regression"])
+    legacy_run.add_argument("category", choices=["trajectory", "embedding", "classification", "regression", "perturbation"])
     legacy_run.add_argument("script", help="Archived script name, with or without .py")
     legacy_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the archived script")
     legacy_run.set_defaults(handler=handle_run_archived)
@@ -132,7 +144,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def handle_list_all(_: argparse.Namespace) -> None:
-    for category in ("trajectory", "embedding", "classification", "regression"):
+    for category in ("trajectory", "embedding", "classification", "regression", "perturbation"):
         print(f"[{category}]")
         for script in available_scripts(category):
             print(script)

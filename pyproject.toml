@@ -1,7 +1,7 @@
 [project]
 name = "scLineagePred"
 version = "0.1.0"
-description = "Source-only packaging for trajectory reconstruction, embedding training, classification, and regression."
+description = "Source-only packaging for trajectory reconstruction, embedding training, classification, regression, and perturbation."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
@@ -10,5 +10,4 @@ authors = [
 dependencies = []
 
 [project.scripts]
-sclineagepred = "sclineagepred.cli:main"
-
+sclineagepred = "scLineagePred.cli:main"
