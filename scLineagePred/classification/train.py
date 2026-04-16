@@ -2,11 +2,13 @@
 """
 Unified sequence classification training for scLineagePred.
 
-- Inputs: DeepLineage/trajectory sequences in H5 format plus optional index CSV
-- Supports binary and multi-class endpoint prediction
-- Base models: BiLSTM / RNN / Transformer
-- Stacking: LogisticRegression
-- Outputs: per-setting ROC, macro ROC, performance trend, and probability-space PCA plots
+Special handling overview:
+- Binary and multi-class datasets use the same entry point; choose endpoint classes
+  with repeated `--target-label`.
+- Dataset-specific time settings are inferred from the sequence file, so the script
+  stays dataset-agnostic.
+- Macro ROC curve points are exported as CSV so all datasets can be re-plotted later
+  by one unified `plot_roc.py` file.
 """
 
 import argparse
@@ -679,6 +681,15 @@ def plot_setting_roc_ovr_macro_style(y_true: np.ndarray, y_prob: np.ndarray,
     save_plot(fig, os.path.join(out_dir, f"ROC_{setting}_Macro"))
     plt.close(fig)
 
+    pd.DataFrame(
+        {
+            "setting": setting,
+            "fpr": all_fpr,
+            "tpr": mean_tpr,
+            "auc": macro_auc,
+        }
+    ).to_csv(os.path.join(out_dir, f"ROC_{setting}_Macro_points.csv"), index=False)
+
     return all_fpr, mean_tpr, macro_auc
 
 
@@ -710,6 +721,26 @@ def plot_macro_roc_all_settings_style(macro_curves: Dict[str, Tuple[np.ndarray, 
     fig.subplots_adjust(left=0.12, right=0.98, bottom=0.12, top=0.90)
     save_plot(fig, os.path.join(out_dir, "ROC_Macro_AllTimepoints_Ensemble"))
     plt.close(fig)
+
+    rows = []
+    for setting in order:
+        if setting not in macro_curves:
+            continue
+        fpr_s, tpr_s, auc_s = macro_curves[setting]
+        for fpr_v, tpr_v in zip(fpr_s, tpr_s):
+            rows.append(
+                {
+                    "setting": setting,
+                    "fpr": float(fpr_v),
+                    "tpr": float(tpr_v),
+                    "auc": float(auc_s),
+                }
+            )
+    if rows:
+        pd.DataFrame(rows).to_csv(
+            os.path.join(out_dir, "ROC_Macro_AllTimepoints_Ensemble_points.csv"),
+            index=False,
+        )
 
 
 def plot_performance_trend(results_buffer: Dict[str, dict], order: List[str], x_labels: List[str], out_dir: str):

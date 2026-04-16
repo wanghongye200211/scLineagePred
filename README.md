@@ -9,7 +9,17 @@ It keeps three top-level code blocks:
 - `scLineagePred/`: one unified downstream package with `classification/`, `regression/`, and `perturbation/`
 
 This repository intentionally excludes datasets, checkpoints, figures, and intermediate results.
-Dataset-specific historical scripts are archived under each module's `legacy/` directory and are no longer the main interface.
+Old per-dataset archive scripts have been removed from the main repository so the structure stays focused on the unified pipeline only.
+
+## Dataset Adaption
+
+Different datasets are handled through the same three downstream files:
+
+1. Classification: pass dataset-specific endpoint labels with repeated `--target-label`.
+2. Regression: pass the endpoint labels to keep with repeated `--keep-label`.
+3. Perturbation: pass the same endpoint labels with repeated `--target-label`; the script derives perturbation scenarios from the last two timepoints automatically.
+
+If a dataset has special paths or selected ROC settings, put those details at the top of `scLineagePred/classification/plot_roc.py`.
 
 ## Project Layout
 
@@ -19,8 +29,12 @@ scLineagePred/
 ├── autoencoder/
 └── scLineagePred/
     ├── classification/
+    │   ├── train.py
+    │   └── plot_roc.py
     ├── regression/
+    │   └── train.py
     └── perturbation/
+        └── train.py
 ```
 
 ## Wrapped Entry Points
@@ -59,6 +73,15 @@ python -m scLineagePred classification train -- \
   --target-label Beta
 ```
 
+Plot unified macro ROC curves:
+
+```bash
+python -m scLineagePred classification plot-roc -- \
+  --result GSE132188=/path/to/run_132188 \
+  --result GSE99915=/path/to/run_99915 \
+  --out-dir /path/to/roc_output
+```
+
 Run unified regression:
 
 ```bash
@@ -88,6 +111,5 @@ python -m scLineagePred perturbation train -- \
 
 Notes:
 
-- `scLineagePred/classification/train.py`, `scLineagePred/regression/train.py`, and `scLineagePred/perturbation/train.py` are now the primary downstream entry points.
-- Archived per-dataset scripts are still available through `python -m scLineagePred legacy list <category>` and `python -m scLineagePred legacy run <category> <script>`.
+- `scLineagePred/classification/train.py`, `scLineagePred/classification/plot_roc.py`, `scLineagePred/regression/train.py`, and `scLineagePred/perturbation/train.py` are the main downstream entry points.
 - The wrapped commands are focused on reusable interfaces instead of dataset-specific filenames.

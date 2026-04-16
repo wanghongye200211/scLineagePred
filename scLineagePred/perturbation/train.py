@@ -77,7 +77,7 @@ class Config:
     # ---------- marker/driver rebuild behavior ----------
     # "push_class": keep dims where best_push_class == class and best_push_delta > 0
     # "pos_only"  : keep dims where best_delta_mean_prob_{class} > 0
-    # "all"       : keep all top dims (legacy behavior)
+    # "all"       : keep all top dims
     marker_dim_mode: str = "push_class"
     # If marker_dim_mode="push_class" yields empty dims, fall back to pos_only first.
     marker_fallback_pos_only: bool = True

@@ -1,2 +1,1 @@
-"""Unified classification entrypoint plus archived legacy scripts."""
-
+"""Unified classification entrypoints."""
