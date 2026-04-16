@@ -1,0 +1,14 @@
+[project]
+name = "scLineagePred"
+version = "0.1.0"
+description = "Source-only packaging for trajectory reconstruction, embedding training, classification, and regression."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Hongye Wang" }
+]
+dependencies = []
+
+[project.scripts]
+sclineagepred = "sclineagepred.cli:main"
+
