@@ -19,14 +19,21 @@ SOURCE_DIRS = {
     "perturbation": PACKAGE_ROOT / "perturbation",
 }
 
+PUBLIC_SCRIPTS = {
+    "trajectory": ["train_RUOT"],
+    "embedding": ["train_model"],
+    "classification": ["train", "plot_roc"],
+    "regression": ["train"],
+    "perturbation": ["train"],
+}
+
 
 def available_scripts(category: str) -> list[str]:
     source_dir = SOURCE_DIRS[category]
-    return sorted(
-        path.stem
-        for path in source_dir.glob("*.py")
-        if path.name != "__init__.py"
-    )
+    public = [name for name in PUBLIC_SCRIPTS.get(category, []) if (source_dir / f"{name}.py").exists()]
+    if public:
+        return public
+    return sorted(path.stem for path in source_dir.glob("*.py") if path.name != "__init__.py")
 
 
 def resolve_script(category: str, script_name: str) -> Path:

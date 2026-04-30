@@ -583,7 +583,7 @@ def run(cfg: Config):
     if indices is None:
         raise ValueError(
             "Your sequences.h5 does NOT contain `indices`, so we cannot fetch real gene expression from adata by index.\n"
-            "This script follows the GSE140802/GSE99915 method and requires indices.\n"
+            "This unified regression pipeline requires indices for expression alignment.\n"
             "Please regenerate sequences with indices saved."
         )
     N, T, D = X_seq.shape

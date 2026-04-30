@@ -22,26 +22,10 @@ import pandas as pd
 
 
 DATASET_PRESETS = {
-    "GSE114412": {
-        "result_dir": "",
-        "settings": [],
-    },
-    "GSE132188": {
-        "result_dir": "",
-        "settings": [],
-    },
-    "GSE140802": {
-        "result_dir": "",
-        "settings": [],
-    },
-    "GSE175634": {
-        "result_dir": "",
-        "settings": [],
-    },
-    "GSE99915": {
-        "result_dir": "",
-        "settings": [],
-    },
+    # "DatasetA": {
+    #     "result_dir": "/path/to/classification_run",
+    #     "settings": ["UpTo_t2", "All_t3"],
+    # },
 }
 
 
@@ -108,6 +92,9 @@ def build_sources(args: argparse.Namespace) -> list[tuple[str, Path, list[str]]]
     sources: list[tuple[str, Path, list[str]]] = []
 
     for preset_name in args.preset:
+        if preset_name not in DATASET_PRESETS:
+            known = ", ".join(sorted(DATASET_PRESETS)) if DATASET_PRESETS else "(no presets configured)"
+            raise ValueError(f"Unknown preset {preset_name!r}. Known presets: {known}")
         preset = DATASET_PRESETS[preset_name]
         result_dir = str(preset.get("result_dir", "")).strip()
         if not result_dir:
@@ -180,7 +167,6 @@ def parse_args() -> argparse.Namespace:
         "--preset",
         action="append",
         default=[],
-        choices=sorted(DATASET_PRESETS),
         help="Dataset preset name defined at the top of this file. Repeat for multiple datasets.",
     )
     parser.add_argument(

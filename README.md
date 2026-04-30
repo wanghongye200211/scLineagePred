@@ -11,7 +11,7 @@ It keeps three top-level code blocks:
 This repository intentionally excludes datasets, checkpoints, figures, and intermediate results.
 Old per-dataset archive scripts have been removed from the main repository so the structure stays focused on the unified pipeline only.
 
-## Dataset Adaption
+## Dataset Adaptation
 
 Different datasets are handled through the same three downstream files:
 
@@ -77,8 +77,8 @@ Plot unified macro ROC curves:
 
 ```bash
 python -m scLineagePred classification plot-roc -- \
-  --result GSE132188=/path/to/run_132188 \
-  --result GSE99915=/path/to/run_99915 \
+  --result DatasetA=/path/to/run_a \
+  --result DatasetB=/path/to/run_b \
   --out-dir /path/to/roc_output
 ```
 
