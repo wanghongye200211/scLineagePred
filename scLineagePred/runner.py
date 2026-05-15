@@ -12,7 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_ROOT = Path(__file__).resolve().parent
 
 SOURCE_DIRS = {
-    "trajectory": PROJECT_ROOT / "DeepRUOT",
+    "trajectory": PROJECT_ROOT / "trajectory_reconstruction",
     "embedding": PROJECT_ROOT / "autoencoder",
     "classification": PACKAGE_ROOT / "classification",
     "regression": PACKAGE_ROOT / "regression",
@@ -20,11 +20,18 @@ SOURCE_DIRS = {
 }
 
 PUBLIC_SCRIPTS = {
-    "trajectory": ["train_RUOT"],
+    "trajectory": ["train"],
     "embedding": ["train_model"],
     "classification": ["train", "plot_roc"],
     "regression": ["train"],
     "perturbation": ["train"],
+}
+
+MODULE_PREFIXES = {
+    "trajectory": "trajectory_reconstruction",
+    "classification": "scLineagePred.classification",
+    "regression": "scLineagePred.regression",
+    "perturbation": "scLineagePred.perturbation",
 }
 
 
@@ -39,7 +46,8 @@ def available_scripts(category: str) -> list[str]:
 def resolve_script(category: str, script_name: str) -> Path:
     normalized = script_name if script_name.endswith(".py") else f"{script_name}.py"
     script_path = SOURCE_DIRS[category] / normalized
-    if not script_path.exists():
+    allowed = {f"{name}.py" for name in available_scripts(category)}
+    if not script_path.exists() or (allowed and normalized not in allowed):
         known = ", ".join(available_scripts(category))
         raise FileNotFoundError(
             f"Unknown {category} script: {script_name}. Available scripts: {known}"
@@ -55,7 +63,11 @@ def _normalize_passthrough_args(args: list[str]) -> list[str]:
 
 def run_script(category: str, script_name: str, script_args: list[str]) -> None:
     script_path = resolve_script(category, script_name)
-    cmd = [sys.executable, str(script_path), *_normalize_passthrough_args(script_args)]
+    if category in MODULE_PREFIXES:
+        module_name = f"{MODULE_PREFIXES[category]}.{script_path.stem}"
+        cmd = [sys.executable, "-m", module_name, *_normalize_passthrough_args(script_args)]
+    else:
+        cmd = [sys.executable, str(script_path), *_normalize_passthrough_args(script_args)]
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join(
         [
@@ -81,10 +93,10 @@ def _clear_modules(names: list[str]) -> None:
 
 def run_trajectory_training(config_path: str, evaluate: bool = False) -> dict[str, Any]:
     _ensure_sys_path(SOURCE_DIRS["trajectory"])
-    _clear_modules(["train_RUOT"])
+    _clear_modules(["train", "trajectory_reconstruction", "trajectory_reconstruction.core.utils"])
 
-    train_module = importlib.import_module("train_RUOT")
-    utils_module = importlib.import_module("DeepRUOT.utils")
+    train_module = importlib.import_module("train")
+    utils_module = importlib.import_module("trajectory_reconstruction.core.utils")
 
     resolved_config = str(Path(config_path).expanduser().resolve())
     config = utils_module.load_and_merge_config(resolved_config)

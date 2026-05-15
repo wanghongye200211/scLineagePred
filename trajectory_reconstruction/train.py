@@ -1,6 +1,5 @@
-import os
-import sys
 import argparse
+import os
 import pandas as pd
 import torch
 import anndata as ad
@@ -16,19 +15,38 @@ random.seed(SEED)
 np.random.seed(SEED)
 torch.random.manual_seed(SEED)
 
-#sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-
-from DeepRUOT.losses import OT_loss1
-from DeepRUOT.utils import (
-    generate_steps, load_and_merge_config,
-    SchrodingerBridgeConditionalFlowMatcher,
-    generate_state_trajectory, get_batch, get_batch_size, get_base_model
-)
-from DeepRUOT.train import train_un1_reduce, train_all
-from DeepRUOT.models import FNet, scoreNet2
-from DeepRUOT.constants import DATA_DIR
-from DeepRUOT.exp import setup_exp
-from DeepRUOT.eval import generate_trajectories_sde
+try:
+    from .core.losses import OT_loss1
+    from .core.utils import (
+        SchrodingerBridgeConditionalFlowMatcher,
+        generate_state_trajectory,
+        generate_steps,
+        get_base_model,
+        get_batch,
+        get_batch_size,
+        load_and_merge_config,
+    )
+    from .core.train import train_all, train_un1_reduce
+    from .core.models import FNet, scoreNet2
+    from .core.constants import DATA_DIR
+    from .core.exp import setup_exp
+    from .core.eval import generate_trajectories_sde
+except ImportError:
+    from core.losses import OT_loss1
+    from core.utils import (
+        SchrodingerBridgeConditionalFlowMatcher,
+        generate_state_trajectory,
+        generate_steps,
+        get_base_model,
+        get_batch,
+        get_batch_size,
+        load_and_merge_config,
+    )
+    from core.train import train_all, train_un1_reduce
+    from core.models import FNet, scoreNet2
+    from core.constants import DATA_DIR
+    from core.exp import setup_exp
+    from core.eval import generate_trajectories_sde
 
 class TrainingPipeline:
     def __init__(self, config):
@@ -397,7 +415,7 @@ class TrainingPipeline:
     
 
 def main():
-    parser = argparse.ArgumentParser(description='Train DeepRUOT model')
+    parser = argparse.ArgumentParser(description="Train the trajectory reconstruction model")
     parser.add_argument('--config', type=str, required=True, help='Path to config file')
     args = parser.parse_args()
     

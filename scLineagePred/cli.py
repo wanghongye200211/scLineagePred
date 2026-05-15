@@ -18,18 +18,18 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser = subparsers.add_parser("list", help="List bundled scripts")
     list_parser.set_defaults(handler=handle_list_all)
 
-    trajectory = subparsers.add_parser("trajectory", help="DeepRUOT trajectory reconstruction")
+    trajectory = subparsers.add_parser("trajectory", help="Trajectory reconstruction")
     trajectory_sub = trajectory.add_subparsers(dest="trajectory_command", required=True)
 
-    trajectory_list = trajectory_sub.add_parser("list", help="List DeepRUOT scripts")
+    trajectory_list = trajectory_sub.add_parser("list", help="List trajectory reconstruction scripts")
     trajectory_list.set_defaults(handler=handle_list_category, category="trajectory")
 
-    trajectory_train = trajectory_sub.add_parser("train", help="Run wrapped DeepRUOT training")
-    trajectory_train.add_argument("--config", required=True, help="Path to DeepRUOT YAML config")
+    trajectory_train = trajectory_sub.add_parser("train", help="Run wrapped trajectory reconstruction training")
+    trajectory_train.add_argument("--config", required=True, help="Path to the trajectory YAML config")
     trajectory_train.add_argument("--evaluate", action="store_true", help="Run evaluation after training")
     trajectory_train.set_defaults(handler=handle_trajectory_train)
 
-    trajectory_run = trajectory_sub.add_parser("run", help="Run a DeepRUOT script")
+    trajectory_run = trajectory_sub.add_parser("run", help="Run a trajectory reconstruction script")
     trajectory_run.add_argument("script", help="Script name, with or without .py")
     trajectory_run.add_argument("script_args", nargs=argparse.REMAINDER, help="Arguments passed to the script")
     trajectory_run.set_defaults(handler=handle_run_script, category="trajectory")

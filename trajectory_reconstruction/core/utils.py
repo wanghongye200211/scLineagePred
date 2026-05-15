@@ -8,7 +8,7 @@ import pandas as pd
 import random
 import yaml
 from copy import deepcopy
-from .config.default_config import DEFAULT_CONFIG, CONFIG_SPEC
+from ._defaults import DEFAULT_CONFIG, CONFIG_SPEC
 import re
 
 def load_and_merge_config(config_path=None):
@@ -344,7 +344,10 @@ _valid_criterions = {
 import argparse
 
 # Define the parser
-parser = argparse.ArgumentParser(prog='DeepRUOT Training', description='Train DeepRUOT')
+parser = argparse.ArgumentParser(
+    prog="Trajectory Reconstruction Training",
+    description="Train the trajectory reconstruction model",
+)
 
 # NOTE: Dataset specification
 parser.add_argument(
@@ -1069,6 +1072,5 @@ def euler_sdeint_split(sde, initial_state, dt, ts, noise_std = 0.01):
     traj_z = [state[0] for state in output_states]
     traj_lnw = [state[1] for state in output_states]
     return traj_z, traj_lnw
-
 
 

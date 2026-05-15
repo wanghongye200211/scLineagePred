@@ -1,0 +1,52 @@
+# Minimal editable config for trajectory reconstruction.
+# The training code merges this file over internal defaults, so you only need
+# to keep the values you want to change here.
+
+device: cpu
+sample_size: 1024
+use_pinn: true
+use_penalty: true
+use_mass: true
+sample_with_replacement: true
+
+exp:
+  name: trajectory_reconstruction_run
+  output_dir: ./outputs/trajectory
+
+data:
+  file_path: data.csv
+  dim: 64
+  hold_out: null
+  hold_one_out: false
+
+model:
+  in_out_dim: 64
+  hidden_dim: 400
+  n_hiddens: 2
+  activation: leakyrelu
+  score_hidden_dim: 128
+
+pretrain:
+  epochs: 500
+  lr: 1.0e-4
+  lambda_ot: 1.0
+  lambda_mass: 0.01
+  lambda_energy: 0.0
+
+score_train:
+  epochs: 3001
+  lr: 1.0e-4
+  lambda_penalty: 1.0
+  sigma: 0.1
+  score_batch_size: 512
+
+train:
+  epochs: 500
+  lr: 1.0e-4
+  lambda_ot: 10.0
+  lambda_mass: 10.0
+  lambda_energy: 0.01
+  lambda_pinn: 100.0
+  lambda_initial: 0.1
+  scheduler_step_size: 100
+  scheduler_gamma: 0.8

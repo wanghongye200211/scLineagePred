@@ -1,4 +1,4 @@
-from ..constants import RES_DIR
+from .constants import RES_DIR
 from typing import List, Optional, Union, Dict, Any
 
 class ConfigParam:

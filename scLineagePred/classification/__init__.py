@@ -1,1 +1,3 @@
-"""Unified classification entrypoints."""
+"""Unified classification package."""
+
+__all__ = ["config", "data", "models", "plots", "train"]

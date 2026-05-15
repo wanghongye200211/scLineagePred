@@ -126,7 +126,7 @@ def generate_trajectories_sde(df, f_net, sf2m_score_model, device, exp_dir, all_
             tmv = np.abs(pred_mass - gt_mass)
             results.append({
                 'Time Point': time_point,
-                'Model': f'DeepRUOT_run{run_idx+1}',
+                'Model': f'TrajectoryReconstruction_run{run_idx+1}',
                 'W1 Distance': w1,
                 'TMV': tmv,
             })
@@ -144,7 +144,7 @@ def generate_points(
     Arguments:
     ----------
         model (torch.nn.Module): Trained network with the property `ode` corresponding to a `NeuralODE(ODEF())`.
-            See `DeepRUOT.ode` for more.
+            See the trajectory reconstruction ODE implementation for more.
         df (pd.DataFrame): DataFrame containing a column for the timepoint samples and the rest of the data.
         n_points (int): Number of points to generate.
         sample_with_replacement (bool): Defaults to `False`. Whether or not to use replacement when sampling
@@ -191,7 +191,7 @@ def generate_trajectories(
     Arguments:
     ----------
         model (torch.nn.Module): Trained network with the property `ode` corresponding to a `NeuralODE(ODEF())`.
-            See `DeepRUOT.ode` for more.
+            See the trajectory reconstruction ODE implementation for more.
         df (pd.DataFrame): DataFrame containing a column for the timepoint samples and the rest of the data.
         n_trajectories (int): Number of trajectories to generate.
         n_bins (int): Number of bins to use for the trajectories. More makes it smoother. Defaults to `100`.
@@ -220,7 +220,7 @@ def generate_plot_data(
     Arguments:
     ----------
         model (torch.nn.Module): Trained network with the property `ode` corresponding to a `NeuralODE(ODEF())`.
-            See `DeepRUOT.ode` for more.
+            See the trajectory reconstruction ODE implementation for more.
         df (pd.DataFrame): DataFrame containing a column for the timepoint samples and the rest of the data.
         n_points (int): Number of points to generate.
         n_trajectories (int): Number of trajectories to generate.
@@ -418,7 +418,7 @@ def generate_tjnet_trajectories(
     '''
     Arguments:
     -----------
-        model (nn.Module): Trained DeepRUOT model.
+        model (nn.Module): Trained trajectory reconstruction model.
 
         df (pd.DataFrame): DataFrame of shape (n_cells, dimensions + 1), where the extra column
             stems from a samples column (column indicating the timepoint of the cell). 
@@ -532,7 +532,7 @@ def get_cell_indexes(
     
     Arguments:
     -----------
-        model (nn.Module): Trained DeepRUOT model.
+        model (nn.Module): Trained trajectory reconstruction model.
 
         df (pd.DataFrame): DataFrame of shape (n_cells, n_genes), where the ordering of 
             the columns `n_genes` corresponds to the columns of `principle_components`.

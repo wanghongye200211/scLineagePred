@@ -1,58 +1,66 @@
 # scLineagePred
 
-`scLineagePred` is a source-only GitHub project prepared from the original research workspace.
+`scLineagePred` is a Python codebase for three connected tasks in single-cell lineage analysis:
 
-It keeps three top-level code blocks:
+1. trajectory reconstruction
+2. embedding training
+3. downstream prediction with classification, regression, and perturbation
 
-- `DeepRUOT/`: trajectory reconstruction code, wrapped for reusable CLI execution
-- `autoencoder/`: embedding training code
-- `scLineagePred/`: one unified downstream package with `classification/`, `regression/`, and `perturbation/`
+This repository keeps reusable source code only. Datasets, checkpoints, figures, and intermediate outputs are intentionally excluded.
 
-This repository intentionally excludes datasets, checkpoints, figures, and intermediate results.
-Old per-dataset archive scripts have been removed from the main repository so the structure stays focused on the unified pipeline only.
-
-## Dataset Adaptation
-
-Different datasets are handled through the same three downstream files:
-
-1. Classification: pass dataset-specific endpoint labels with repeated `--target-label`.
-2. Regression: pass the endpoint labels to keep with repeated `--keep-label`.
-3. Perturbation: pass the same endpoint labels with repeated `--target-label`; the script derives perturbation scenarios from the last two timepoints automatically.
-
-If a dataset has special paths or selected ROC settings, put those details at the top of `scLineagePred/classification/plot_roc.py`.
-
-## Project Layout
+## Repository Layout
 
 ```text
 scLineagePred/
-├── DeepRUOT/
+├── trajectory_reconstruction/
+│   ├── config.yaml
+│   ├── train.py
+│   └── core/
 ├── autoencoder/
+│   ├── dataio.py
+│   ├── netmodel.py
+│   ├── train_model.py
+│   └── utils.py
 └── scLineagePred/
     ├── classification/
-    │   ├── train.py
-    │   └── plot_roc.py
+    │   ├── config.py
+    │   ├── data.py
+    │   ├── models.py
+    │   ├── plots.py
+    │   ├── plot_roc.py
+    │   └── train.py
     ├── regression/
+    │   ├── config.py
+    │   ├── data.py
+    │   ├── models.py
     │   └── train.py
     └── perturbation/
+        ├── config.py
+        ├── data.py
+        ├── drivers.py
+        ├── models.py
+        ├── scan.py
         └── train.py
 ```
 
-## Wrapped Entry Points
+The top level follows a simple GitHub-friendly pattern: one folder per stage, one main runnable entry per stage, and small helper modules next to it.
 
-List available scripts:
+## Quick Start
+
+List public entry points:
 
 ```bash
 python -m scLineagePred list
 ```
 
-Run wrapped DeepRUOT training:
+Run trajectory reconstruction:
 
 ```bash
-python -m scLineagePred trajectory train --config /path/to/config.yaml
-python -m scLineagePred trajectory train --config /path/to/config.yaml --evaluate
+python -m scLineagePred trajectory train \
+  --config trajectory_reconstruction/config.yaml
 ```
 
-Run wrapped embedding training:
+Run embedding training:
 
 ```bash
 python -m scLineagePred embedding train \
@@ -62,7 +70,7 @@ python -m scLineagePred embedding train \
   --out-dir /path/to/output
 ```
 
-Run unified classification:
+Run classification:
 
 ```bash
 python -m scLineagePred classification train -- \
@@ -73,7 +81,7 @@ python -m scLineagePred classification train -- \
   --target-label Beta
 ```
 
-Plot unified macro ROC curves:
+Plot macro ROC curves:
 
 ```bash
 python -m scLineagePred classification plot-roc -- \
@@ -82,7 +90,7 @@ python -m scLineagePred classification plot-roc -- \
   --out-dir /path/to/roc_output
 ```
 
-Run unified regression:
+Run regression:
 
 ```bash
 python -m scLineagePred regression train -- \
@@ -95,7 +103,7 @@ python -m scLineagePred regression train -- \
   --keep-label Beta
 ```
 
-Run unified perturbation:
+Run perturbation:
 
 ```bash
 python -m scLineagePred perturbation train -- \
@@ -109,7 +117,17 @@ python -m scLineagePred perturbation train -- \
   --target-label Beta
 ```
 
-Notes:
+## Dataset Adaptation
 
-- `scLineagePred/classification/train.py`, `scLineagePred/classification/plot_roc.py`, `scLineagePred/regression/train.py`, and `scLineagePred/perturbation/train.py` are the main downstream entry points.
-- The wrapped commands are focused on reusable interfaces instead of dataset-specific filenames.
+The repository no longer keeps one script per dataset. Instead, special cases are handled in a few stable places:
+
+- `classification/train.py`: select endpoint classes with repeated `--target-label`.
+- `regression/train.py`: keep endpoint classes with repeated `--keep-label`.
+- `perturbation/train.py`: reuse repeated `--target-label` and scan the final two observation windows.
+- `classification/plot_roc.py`: if one dataset needs a custom ROC comparison preset, define it near the top of that file.
+
+## Notes
+
+- `trajectory_reconstruction/config.yaml` is the only user-facing YAML template for the trajectory stage.
+- Internal defaults for trajectory reconstruction stay in Python code so the public config file can remain short.
+- The downstream folders now expose one main workflow each, but the helper code is split into `config`, `data`, `models`, `plots`, `drivers`, or `scan` modules where that makes the code easier to maintain.
