@@ -295,11 +295,11 @@ def train_un1_reduce(
 
             batch_loss = []
             if hold_one_out:
-                groups = [g for g in groups if g != hold_out] # TODO: Currently does not work if hold_out='random'. Do to_ignore before. 
+                groups = [g for g in groups if g != hold_out]
                 steps = generate_steps(groups)
             for step_idx, (t0, t1) in enumerate(steps):  
-                if hold_out in [t0, t1] and hold_one_out: # TODO: This `if` can be deleted since the groups does not include the ho timepoint anymore
-                    continue                              # i.e. it is always False. 
+                if hold_out in [t0, t1] and hold_one_out:
+                    continue
                 optimizer.zero_grad()
                 data_t0.to(device)
                 size1=(df[df['samples']==t1].values.shape[0],)
@@ -933,4 +933,3 @@ def train_all(
     print_loss = globe_losses if global_loss else batch_losses 
     logger.info(f'Train loss: {np.round(np.mean(print_loss), 5)}')
     return local_losses, batch_losses, globe_losses
-

@@ -7,7 +7,10 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 
-from .config import Config
+try:
+    from .config import Config
+except ImportError:
+    from config import Config
 
 
 def load_hvgs(cfg: Config) -> set:
@@ -105,8 +108,8 @@ def integrate_marker_genes_for_class(genes: np.ndarray, Zg: np.ndarray, dim_sum:
     ).reset_index(drop=True)
 
 
-def build_local_driver_from_marker(df_rank: pd.DataFrame, class_name: str, rrf_k: int, top_n: int) -> pd.DataFrame:
-    columns = ["gene", "driver_score", "score_abs", "score_signed", "direction", "rank"]
+def build_local_marker_rank(df_rank: pd.DataFrame, class_name: str, rrf_k: int, top_n: int) -> pd.DataFrame:
+    columns = ["gene", "marker_score", "score_abs", "score_signed", "direction", "rank"]
     if df_rank is None or df_rank.empty or "gene" not in df_rank.columns:
         return pd.DataFrame(columns=columns)
 
@@ -117,7 +120,7 @@ def build_local_driver_from_marker(df_rank: pd.DataFrame, class_name: str, rrf_k
         df_rank["score_signed"] = 0.0
 
     df_rank["rank"] = np.arange(1, len(df_rank) + 1, dtype=np.int64)
-    df_rank["driver_score"] = 1.0 / (float(rrf_k) + df_rank["rank"].astype(float))
+    df_rank["marker_score"] = 1.0 / (float(rrf_k) + df_rank["rank"].astype(float))
     df_rank["direction"] = np.where(
         df_rank["score_signed"] > 0,
         f"{class_name}_push",
@@ -149,7 +152,7 @@ def transition_genes(genes: np.ndarray, Zg: np.ndarray, deltaZ: np.ndarray, topk
     return pd.DataFrame({"gene": genes[idx], "score": score[idx], "proj": proj[idx], "cos_signed": cos_signed[idx]})
 
 
-def build_driver_master_rrf(cfg: Config, downstream_dir: str, decoder_tags: List[str], class_name: str) -> pd.DataFrame:
+def build_marker_master_rrf(cfg: Config, downstream_dir: str, decoder_tags: List[str], class_name: str) -> pd.DataFrame:
     score: Dict[str, float] = {}
     signed: Dict[str, float] = {}
     sources: Dict[str, set] = {}
@@ -172,10 +175,10 @@ def build_driver_master_rrf(cfg: Config, downstream_dir: str, decoder_tags: List
             sources.setdefault(gene, set()).add(f"marker_{tag}")
 
     if not score:
-        return pd.DataFrame(columns=["gene", "driver_score", "signed_score", "direction", "sources", "rank"])
+        return pd.DataFrame(columns=["gene", "marker_score", "signed_score", "direction", "sources", "rank"])
 
     rows = []
-    for gene, driver_score in score.items():
+    for gene, marker_score in score.items():
         signed_score = float(signed.get(gene, 0.0))
         if signed_score > 0:
             direction = f"{class_name}_push"
@@ -186,13 +189,13 @@ def build_driver_master_rrf(cfg: Config, downstream_dir: str, decoder_tags: List
         rows.append(
             {
                 "gene": gene,
-                "driver_score": float(driver_score),
+                "marker_score": float(marker_score),
                 "signed_score": signed_score,
                 "direction": direction,
                 "sources": "|".join(sorted(sources.get(gene, set()))),
             }
         )
 
-    df_master = pd.DataFrame(rows).sort_values(["driver_score", "gene"], ascending=[False, True]).reset_index(drop=True)
+    df_master = pd.DataFrame(rows).sort_values(["marker_score", "gene"], ascending=[False, True]).reset_index(drop=True)
     df_master["rank"] = np.arange(1, len(df_master) + 1)
     return df_master

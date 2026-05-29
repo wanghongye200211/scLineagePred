@@ -3,7 +3,8 @@
 Unified latent-space perturbation scan for scLineagePred.
 
 The public workflow stays in one place, while data loading, ensemble handling,
-scan logic, and driver reconstruction are split into small support modules.
+scan logic, and cell-state transition marker analysis are split into small
+support modules.
 """
 
 from __future__ import annotations
@@ -18,9 +19,9 @@ import pandas as pd
 try:
     from .config import Config, config_from_args, parse_args
     from .data import build_strategies, ensure_dir, load_sequences, pick_device, sanitize_name
-    from .drivers import (
-        build_driver_master_rrf,
-        build_local_driver_from_marker,
+    from .markers import (
+        build_local_marker_rank,
+        build_marker_master_rrf,
         integrate_marker_genes_for_class,
         load_decoder,
         load_hvgs,
@@ -33,9 +34,9 @@ try:
 except ImportError:
     from config import Config, config_from_args, parse_args
     from data import build_strategies, ensure_dir, load_sequences, pick_device, sanitize_name
-    from drivers import (
-        build_driver_master_rrf,
-        build_local_driver_from_marker,
+    from markers import (
+        build_local_marker_rank,
+        build_marker_master_rrf,
         integrate_marker_genes_for_class,
         load_decoder,
         load_hvgs,
@@ -209,13 +210,16 @@ def run(cfg: Config):
                 marker_rank = integrate_marker_genes_for_class(genes, Zg, dim_summary, dims_for_class, class_name)
                 marker_rank.to_csv(os.path.join(decoder_dir, f"marker_genes_ranked_{class_name}.csv"), index=False)
 
-                driver_rank = build_local_driver_from_marker(
+                local_marker_rank = build_local_marker_rank(
                     df_rank=marker_rank,
                     class_name=class_name,
                     rrf_k=int(cfg.rrf_k),
                     top_n=int(cfg.top_union_marker),
                 )
-                driver_rank.to_csv(os.path.join(decoder_dir, f"driver_genes_ranked_{class_name}.csv"), index=False)
+                local_marker_rank.to_csv(
+                    os.path.join(decoder_dir, f"cell_state_transition_markers_ranked_{class_name}.csv"),
+                    index=False,
+                )
                 union_genes.update(marker_rank["gene"].astype(str).head(int(cfg.top_union_marker)).tolist())
 
     pd.DataFrame({"gene": sorted(union_genes)}).to_csv(
@@ -223,27 +227,33 @@ def run(cfg: Config):
         index=False,
     )
 
-    if cfg.save_driver_master:
+    if cfg.save_marker_master:
         for class_name in class_names:
-            driver_master = build_driver_master_rrf(cfg, downstream_dir=downstream_dir, decoder_tags=decoder_tags, class_name=class_name)
-            driver_master.to_csv(os.path.join(downstream_dir, f"driver_genes_master_{class_name}.csv"), index=False)
-            driver_master[["gene", "driver_score", "direction", "sources", "rank"]].to_csv(
-                os.path.join(downstream_dir, f"driver_genes_{class_name}.csv"),
+            marker_master = build_marker_master_rrf(cfg, downstream_dir=downstream_dir, decoder_tags=decoder_tags, class_name=class_name)
+            marker_master.to_csv(
+                os.path.join(downstream_dir, f"cell_state_transition_markers_master_{class_name}.csv"),
                 index=False,
             )
-            driver_master.to_csv(os.path.join(cfg.out_dir, f"driver_genes_master_{class_name}.csv"), index=False)
-            driver_master[["gene", "driver_score"]].to_csv(
-                os.path.join(cfg.out_dir, f"driver_genes_{class_name}.csv"),
+            marker_master[["gene", "marker_score", "direction", "sources", "rank"]].to_csv(
+                os.path.join(downstream_dir, f"cell_state_transition_markers_{class_name}.csv"),
+                index=False,
+            )
+            marker_master.to_csv(
+                os.path.join(cfg.out_dir, f"cell_state_transition_markers_master_{class_name}.csv"),
+                index=False,
+            )
+            marker_master[["gene", "marker_score"]].to_csv(
+                os.path.join(cfg.out_dir, f"cell_state_transition_markers_{class_name}.csv"),
                 index=False,
             )
 
-        union_driver = set()
+        union_markers = set()
         for class_name in class_names:
-            path = os.path.join(downstream_dir, f"driver_genes_master_{class_name}.csv")
+            path = os.path.join(downstream_dir, f"cell_state_transition_markers_master_{class_name}.csv")
             if os.path.exists(path):
-                union_driver.update(pd.read_csv(path)["gene"].astype(str).head(300).tolist())
-        pd.DataFrame({"gene": sorted(union_driver)}).to_csv(
-            os.path.join(downstream_dir, "driver_genes_union_top300_eachclass.csv"),
+                union_markers.update(pd.read_csv(path)["gene"].astype(str).head(300).tolist())
+        pd.DataFrame({"gene": sorted(union_markers)}).to_csv(
+            os.path.join(downstream_dir, "cell_state_transition_markers_union_top300_eachclass.csv"),
             index=False,
         )
 

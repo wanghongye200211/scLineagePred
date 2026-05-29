@@ -1,12 +1,23 @@
 # scLineagePred
 
-`scLineagePred` is a Python codebase for connected tasks in time-resolved single-cell lineage analysis:
+`scLineagePred` is a Python package for time-resolved single-cell lineage prediction. It provides reusable workflows for trajectory reconstruction, representation learning, endpoint classification, gene-expression regression, and perturbation-based cell-state transition marker analysis.
 
-1. trajectory reconstruction
-2. embedding training
-3. downstream prediction with classification, regression, and perturbation
+This repository is maintained as the code companion for the scLineagePred manuscript. It contains source code and command-line entry points only. Public datasets, trained checkpoints, figures, and generated intermediate files are intentionally excluded from the GitHub repository.
 
-This repository keeps reusable source code only. Datasets, trained checkpoints, figures, and intermediate outputs are intentionally excluded.
+## What Is Included
+
+- Source code for trajectory reconstruction, embedding training, classification, regression, and perturbation analyses.
+- Command-line entry points exposed through `python -m scLineagePred` and the installed `sclineagepred` console script.
+- A compact trajectory configuration template at `trajectory_reconstruction/config.yaml`.
+- Dependency metadata in `requirements.txt` and `pyproject.toml`.
+- Data and code availability notes for manuscript review.
+
+## What Is Not Included
+
+- Public single-cell datasets downloaded from GEO or CoSpar.
+- Trained model checkpoints.
+- Manuscript figures and figure source outputs.
+- Large intermediate files generated during preprocessing, trajectory reconstruction, embedding training, prediction, or perturbation analysis.
 
 ## Installation
 
@@ -20,6 +31,14 @@ python -m pip install -e .
 ```
 
 PyTorch and PyTorch Geometric installation can depend on the CUDA version available on the target machine. If GPU acceleration is required, install the matching `torch` and `torch-geometric` builds following their official instructions before running the workflows below.
+
+For local submission validation on the author's workstation, the commands below were checked with:
+
+```bash
+/opt/anaconda3/envs/cellfate/bin/python
+```
+
+This local path is not required for external users; it records the environment used to verify the GitHub repository before submission.
 
 ## Repository Layout
 
@@ -50,13 +69,13 @@ scLineagePred/
     └── perturbation/
         ├── config.py
         ├── data.py
-        ├── drivers.py
+        ├── markers.py
         ├── models.py
         ├── scan.py
         └── train.py
 ```
 
-The top level follows a simple GitHub-friendly pattern: one folder per stage, one main runnable entry per stage, and small helper modules next to it.
+The top level follows a stage-based layout: one folder per workflow stage, one main runnable entry per stage, and focused helper modules next to each entry point.
 
 ## Quick Start
 
@@ -64,6 +83,13 @@ List public entry points:
 
 ```bash
 python -m scLineagePred list
+```
+
+Show command help:
+
+```bash
+python -m scLineagePred --help
+python -m scLineagePred perturbation train -- --help
 ```
 
 Run trajectory reconstruction:
@@ -116,7 +142,7 @@ python -m scLineagePred regression train -- \
   --keep-label Beta
 ```
 
-Run perturbation:
+Run perturbation and cell-state transition marker analysis:
 
 ```bash
 python -m scLineagePred perturbation train -- \
@@ -130,6 +156,8 @@ python -m scLineagePred perturbation train -- \
   --target-label Beta
 ```
 
+The examples above show the command structure. Reproducing the manuscript analyses also requires preparing the corresponding public datasets, sequence files, model outputs, and dataset-specific configuration outside this source-only repository.
+
 ## Dataset Adaptation
 
 The repository no longer keeps one script per dataset. Instead, special cases are handled in a few stable places:
@@ -141,7 +169,7 @@ The repository no longer keeps one script per dataset. Instead, special cases ar
 
 ## Data Availability
 
-All datasets used in the manuscript are publicly available. The lineage-resolved hematopoiesis dataset (GSE140802) and the direct lineage reprogramming dataset (GSE99915) were obtained from the processed datasets distributed with CoSpar:
+All single-cell datasets analyzed in the manuscript are publicly available. The lineage-resolved hematopoiesis dataset (GSE140802) and the direct lineage reprogramming dataset (GSE99915) were downloaded from the processed datasets distributed through the CoSpar documentation and tutorial pages:
 
 - CoSpar documentation: <https://cospar.readthedocs.io/en/latest/>
 - Hematopoiesis tutorial: <https://cospar.readthedocs.io/en/latest/20210121_all_hematopoietic_data_v3.html>
@@ -157,7 +185,7 @@ No new sequencing data were generated for this study. See [DATA_AVAILABILITY.md]
 
 ## Code Availability
 
-The source code and analysis scripts for scLineagePred are available in this repository. The repository contains reusable code for trajectory reconstruction, embedding training, classification, regression, and perturbation analyses. Large datasets, trained checkpoints, figures, and intermediate outputs are not included.
+The source code and analysis scripts for scLineagePred are available at <https://github.com/wanghongye200211/scLineagePred>. The repository contains reusable code for trajectory reconstruction, embedding training, classification, regression, and perturbation analyses. Large datasets, trained checkpoints, figures, and intermediate outputs are not included.
 
 ## Reproducibility Notes
 
@@ -165,13 +193,14 @@ The source code and analysis scripts for scLineagePred are available in this rep
 - Prepare dataset-specific input files outside the repository to avoid committing large public datasets or generated artifacts.
 - Use `trajectory_reconstruction/config.yaml` as the editable template for trajectory reconstruction.
 - Use the command-line entry points in the Quick Start section to run the main workflow stages.
+- Use `--target-label` or `--keep-label` repeatedly to adapt downstream tasks to different endpoint cell types.
 
 ## Notes
 
 - `trajectory_reconstruction/config.yaml` is the only user-facing YAML template for the trajectory stage.
 - Internal defaults for trajectory reconstruction stay in Python code so the public config file can remain short.
-- The downstream folders now expose one main workflow each, but the helper code is split into `config`, `data`, `models`, `plots`, `drivers`, or `scan` modules where that makes the code easier to maintain.
+- The downstream folders expose one main workflow each, with helper code split into `config`, `data`, `models`, `plots`, `markers`, or `scan` modules where that makes the code easier to maintain.
 
 ## License
 
-No open-source license file is currently included. Add a license before publication if public reuse beyond manuscript review is intended.
+This project is released under the MIT License. See [LICENSE](LICENSE) for details.

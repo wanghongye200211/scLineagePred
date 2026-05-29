@@ -59,7 +59,7 @@ class Config:
     rrf_k: int = 50
     top_union_marker: int = 800
     top_union_transition: int = 300
-    save_driver_master: bool = True
+    save_marker_master: bool = True
 
     device: str = "auto"
     batch_size: int = 2048
@@ -111,7 +111,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--z-genes-npy", help="Optional explicit Z_genes.npy path")
     parser.add_argument("--no-marker-fallback-pos-only", action="store_true", help="Disable pos_only fallback when push_class yields no dims")
     parser.add_argument("--no-normalize-gene-vectors", action="store_true", help="Disable decoder gene vector normalization")
-    parser.add_argument("--no-save-driver-master", action="store_true", help="Skip aggregated driver gene exports")
+    parser.add_argument(
+        "--no-save-marker-master",
+        action="store_true",
+        help="Skip aggregated cell-state transition marker exports",
+    )
     return parser.parse_args()
 
 
@@ -142,7 +146,7 @@ def config_from_args(args: argparse.Namespace) -> Config:
         "rrf_k": args.rrf_k,
         "top_union_marker": args.top_union_marker,
         "top_union_transition": args.top_union_transition,
-        "save_driver_master": not args.no_save_driver_master,
+        "save_marker_master": not args.no_save_marker_master,
         "device": args.device,
         "batch_size": args.batch_size,
     }

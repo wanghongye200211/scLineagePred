@@ -490,7 +490,7 @@ parser.add_argument(
     action=argparse.BooleanOptionalAction,
     help='Whether or not to use a geodesic embedding'
 )
-# TODO: add Geo training stuff
+# Geodesic embedding options are parsed here and consumed by training setup when enabled.
 parser.add_argument(
     '--geo-layers', '-gl', type=int, nargs='+', default=[32],
     help='Layer sizes for geodesic embedding model'
@@ -1072,5 +1072,4 @@ def euler_sdeint_split(sde, initial_state, dt, ts, noise_std = 0.01):
     traj_z = [state[0] for state in output_states]
     traj_lnw = [state[1] for state in output_states]
     return traj_z, traj_lnw
-
 
