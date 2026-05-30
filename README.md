@@ -1,6 +1,6 @@
 # scLineagePred
 
-`scLineagePred` is a Python package for time-resolved single-cell lineage prediction. It provides reusable workflows for trajectory reconstruction, representation learning, endpoint classification, gene-expression regression, and perturbation-based cell-state transition marker analysis.
+`scLineagePred` is a Python-based software toolkit for time-resolved single-cell lineage prediction. The codebase is organised as command-line stages for trajectory reconstruction, latent representation learning, endpoint cell-state classification, endpoint gene-expression regression, and perturbation-based prioritisation of cell-state transition markers.
 
 This repository is maintained as the code companion for the scLineagePred manuscript. It contains source code and command-line entry points only. Public datasets, trained checkpoints, figures, and generated intermediate files are intentionally excluded from the GitHub repository.
 
