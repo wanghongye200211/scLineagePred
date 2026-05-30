@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, log_loss
+from sklearn.metrics import accuracy_score, log_loss, roc_auc_score
 from torch.utils.data import DataLoader
 
 try:
@@ -182,6 +182,12 @@ def get_probs(model: nn.Module, loader: DataLoader, device: torch.device):
     return np.concatenate(probs, axis=0), np.concatenate(targets, axis=0)
 
 
+def compute_auc(y_true: np.ndarray, y_prob: np.ndarray) -> float:
+    if y_prob.shape[1] == 2:
+        return float(roc_auc_score(y_true, y_prob[:, 1]))
+    return float(roc_auc_score(y_true, y_prob, multi_class="ovr", average="macro"))
+
+
 def build_models(input_dim: int, cfg: Config, num_classes: int) -> Dict[str, nn.Module]:
     return {
         "BiLSTM": BiLSTMModel(input_dim, cfg.hidden_dim, cfg.num_layers, cfg.dropout, num_classes),
@@ -283,8 +289,9 @@ def run(cfg: Config):
 
         y_pred = np.argmax(p_stack, axis=1)
         acc = accuracy_score(y_test, y_pred)
+        auc_score = compute_auc(y_test, p_stack)
         loss = log_loss(y_test, p_stack, labels=list(range(len(class_names))))
-        print(f"   [Result] {setting} | Acc={acc:.4f} | LogLoss={loss:.4f}")
+        print(f"   [Result] {setting} | AUC={auc_score:.4f} | Acc={acc:.4f} | LogLoss={loss:.4f}")
 
         with open(os.path.join(cfg.model_dir, f"{setting}_Stacking_s{seed}.pkl"), "wb") as handle:
             pickle.dump(stacker, handle)
@@ -293,9 +300,11 @@ def run(cfg: Config):
             "seed": seed,
             "y_true": y_test,
             "y_prob": p_stack,
+            "auc": auc_score,
             "acc": acc,
             "loss": loss,
             "clones": clones[test_idx],
+            "test_idx": test_idx,
         }
 
     print("\n" + "=" * 60)
@@ -332,10 +341,23 @@ def run(cfg: Config):
     summary_rows = []
     for setting in setting_order:
         result = results_buffer[setting]
+        pred_rows = {
+            "sequence_index": result["test_idx"].astype(int),
+            "clone_id": result["clones"].astype(int),
+            "y_true": result["y_true"].astype(int),
+            "true_label": [class_names[i] for i in result["y_true"]],
+        }
+        for class_idx, class_name in enumerate(class_names):
+            pred_rows[f"prob_{class_name}"] = result["y_prob"][:, class_idx]
+        pd.DataFrame(pred_rows).to_csv(
+            os.path.join(cfg.out_dir, f"predictions_{setting}.csv"),
+            index=False,
+        )
         summary_rows.append(
             {
                 "Setting": setting,
                 "Seed": result["seed"],
+                "AUC": result["auc"],
                 "Accuracy": result["acc"],
                 "LogLoss": result["loss"],
                 "N_test": int(len(result["y_true"])),

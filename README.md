@@ -9,6 +9,7 @@ This repository is maintained as the code companion for the scLineagePred manusc
 - Source code for trajectory reconstruction, embedding training, classification, regression, and perturbation analyses.
 - Command-line entry points exposed through `python -m scLineagePred` and the installed `sclineagepred` console script.
 - A compact trajectory configuration template at `trajectory_reconstruction/config.yaml`.
+- A review-oriented GSE175634 example path in `examples/use_downloaded_GSE175634_dataset`.
 - Dependency metadata in `requirements.txt` and `pyproject.toml`.
 - Data and code availability notes for manuscript review.
 
@@ -91,6 +92,20 @@ Show command help:
 python -m scLineagePred --help
 python -m scLineagePred perturbation train -- --help
 ```
+
+Run the downloaded GSE175634 example path:
+
+```bash
+bash examples/use_downloaded_GSE175634_dataset/run_gse175634_pipeline.sh
+```
+
+For a quick workflow check without manuscript-scale training time:
+
+```bash
+SMOKE=1 bash examples/use_downloaded_GSE175634_dataset/run_gse175634_pipeline.sh
+```
+
+See [examples/use_downloaded_GSE175634_dataset/README.md](examples/use_downloaded_GSE175634_dataset/README.md) for the complete preprocessing, trajectory reconstruction, embedding, classification, regression, perturbation, and benchmark instructions.
 
 Run trajectory reconstruction:
 

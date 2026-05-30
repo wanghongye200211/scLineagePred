@@ -1,0 +1,3 @@
+task,class,n_samples,aggregation,n_genes_plotted,pearson_r,r2
+Reg_day15_from_day0_day1_day3_day5_day7_day11,CF,10254,clone,574,0.9988581904980715,0.9977176847250816
+Reg_day15_from_day0_day1_day3_day5_day7_day11,CM,4379,clone,577,0.9978338781497381,0.9956724483833465

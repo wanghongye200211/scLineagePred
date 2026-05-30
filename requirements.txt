@@ -9,6 +9,7 @@ POT>=0.9
 PyYAML>=6.0
 scikit-learn>=1.2
 scipy>=1.10
+scanpy>=1.9
 seaborn>=0.12
 torch>=2.0
 torch-geometric>=2.3
